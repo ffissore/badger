@@ -1,0 +1,5 @@
+config badger
+	option spreadsheet_title 'TITLE'
+	option google_usr 'USER'
+	option google_pwd 'PASSWORD'
+

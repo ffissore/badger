@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd `dirname $0` > /dev/null
+SCRIPTPATH=`pwd`
+cd - > /dev/null
+
+python -OO $SCRIPTPATH/sync_with_google.pyo $@
+

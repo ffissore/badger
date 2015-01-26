@@ -1,0 +1,62 @@
+<%+header%>
+<div>
+
+    <h2><%:List of badges%></h2>
+
+    <div class="cbi-map">
+        <fieldset class="cbi-section">
+            <legend><%:List of badges%></legend>
+            <div class="cbi-section-node">
+                <table class="cbi-section-table">
+                    <tr class="cbi-section-table-titles">
+                        <th>Name</th>
+                        <th>RFID</th>
+                        <th>Enabled</th>
+                        <th></th>
+                    </tr>
+                    <% for key, user in pairs(users) do %>
+                    <tr class="cbi-section-table-row cbi-rowstyle-1">
+                        <td class="cbi-value-field">
+                            <div><%= user.name %></div>
+                        </td>
+                        <td class="cbi-value-field">
+                            <div><%= user.rfid %></div>
+                        </td>
+                        <td class="cbi-value-field">
+                            <div>
+                                <form action="<%= pcdata(controller .. '/admin/badger/toggle') %>" method="post">
+                                    <input type="hidden" name="user_id" value="<%= user.id %>"/>
+                                    <% if (user.enabled == 1) then %>
+                                    <input type="submit" class="cbi-button cbi-input-save" value="Enabled"/>
+                                    <% else %>
+                                    <input type="submit" class="cbi-button cbi-input-reset" value="Disabled"/>
+                                    <% end %>
+                                </form>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <form action="<%= pcdata(controller .. '/admin/badger/edit') %>" method="post">
+                                    <input type="hidden" name="user_id" value="<%= user.id %>"/>
+                                    <input type="submit" class="cbi-button cbi-input-apply" value="Edit"/>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <% end %>
+                    <tr>
+                        <td>
+                        </td>
+                    </tr>
+                </table>
+                <div class="cbi-section-create cbi-tblsection-create">
+                    <form action="<%= pcdata(controller .. '/admin/badger/new') %>">
+                        <input type="submit" class="cbi-button cbi-button-add" value="Add"/>
+                    </form>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+</div>
+<%+footer%>

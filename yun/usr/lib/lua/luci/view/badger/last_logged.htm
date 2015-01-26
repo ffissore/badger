@@ -1,0 +1,43 @@
+<%+header%>
+<div>
+
+    <h2><%:Last logged badges%></h2>
+
+    <div class="cbi-map">
+        <fieldset class="cbi-section">
+            <legend><%:Last logged badges%></legend>
+            <div class="cbi-section-node">
+                <table class="cbi-section-table">
+                    <tr class="cbi-section-table-titles">
+                        <th>Number</th>
+                        <th>Name</th>
+                        <th>RFID</th>
+                        <th>Time</th>
+                    </tr>
+                    <% for key, badge in pairs(logged_badges) do %>
+                    <tr class="cbi-section-table-row cbi-rowstyle-1">
+                        <td class="cbi-value-field">
+                            <div><%= badge.id %></div>
+                        </td>
+                        <td class="cbi-value-field">
+                            <div><%= badge.name %></div>
+                        </td>
+                        <td class="cbi-value-field">
+                            <div><%= badge.rfid %></div>
+                        </td>
+                        <td class="cbi-value-field">
+                            <div><%= badge.logged_at %></div>
+                        </td>
+                    </tr>
+                    <% end %>
+                    <tr>
+                        <td>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </fieldset>
+    </div>
+
+</div>
+<%+footer%>

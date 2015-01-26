@@ -1,0 +1,41 @@
+<%+header%>
+<div>
+
+    <% if (user.id == nil) then %>
+    <h2><%:New badge%></h2>
+    <% else %>
+    <h2><%:Edit badge%></h2>
+    <% end %>
+
+    <div class="cbi-map">
+        <form action="<%= pcdata(controller .. '/admin/badger/save') %>" method="post">
+            <input type="hidden" name="user_id" value="<%= user.id %>"/>
+            <fieldset class="cbi-section">
+                <% if (user.id == nil) then %>
+                <legend><%:New badge%></legend>
+                <% else %>
+                <legend><%:Edit badge%></legend>
+                <% end %>
+                <div class="cbi-value">
+                    <label class="cbi-value-title">Name</label>
+
+                    <div class="cbi-value-field">
+                        <input type="text" class="cbi-input-text" name="name" value="<%= user.name %>"/>
+                    </div>
+                </div>
+                <div class="cbi-value">
+                    <label class="cbi-value-title">RFID</label>
+
+                    <div class="cbi-value-field">
+                        <input type="text" class="cbi-input-text" name="rfid" value="<%= user.rfid %>"/>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="cbi-page-actions">
+                <input type="submit" class="cbi-button cbi-button-save" value="Save"/>
+                <input type="reset" class="cbi-button cbi-button-reset" value="Reset"/>
+            </div>
+        </form>
+    </div>
+</div>
+<%+footer%>
