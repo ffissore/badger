@@ -53,6 +53,10 @@ When everything goes well, the GREEN led blinks and then stays lit for a second 
 
 When there's something wrong, the GREEN led blinks and then the RED led lits for a couple of seconds and a long beep is heard. Two possible problems may be the cause: the badge was unknown or the disk space of the Yun is full. In the latter case, move the database to an uSD card and modify the python code accordingly
 
+# CREDITS
+
+This project was *inspired* by [FablabDoorman](https://github.com/FablabTorino/FablabDoorman). Thanks to @Fede85 and the guys at [FabLab Torino](http://fablabtorino.org/) for their awesome work!
+
 # LICENSE
 
 Badger, an RFID tracker made with Arduino
