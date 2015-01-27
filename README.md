@@ -20,7 +20,7 @@ From a terminal, run the following command
 
 SSH into the Yun and run:
 
-```
+```bash
 opkg update
 #install additional packages
 opkg install python-sqlite3 sqlite3-cli python-openssl python-expat lsqlite3
@@ -34,7 +34,7 @@ echo '*/10 * * * * /root/sync' > /etc/crontabs/root
 
 In order to add additional security, please run the following commands as well:
 
-```
+```bash
 #stop the webserver from listening to port 80: port 443 (https) remains active
 sed -i 's/\tlist listen_http\t0.0.0.0:80/#\tlist listen_http\t0.0.0.0:80/g' /etc/config/uhttpd
 #disables wifi: too easy to crack
