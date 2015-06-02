@@ -1,5 +1,5 @@
 config badger
 	option spreadsheet_title 'TITLE'
-	option google_usr 'USER'
-	option google_pwd 'PASSWORD'
+	option google_client_email 'SERVICE EMAIL'
+	option google_private_key 'PRIVATE KEY'
 

@@ -17,6 +17,8 @@
 import sqlite3
 import os
 import gspread
+from oauth2client.client import SignedJwtAssertionCredentials
+scope = ['https://spreadsheets.google.com/feeds']
 
 source_dir = os.path.dirname(os.path.abspath(__file__))
 conn = sqlite3.connect(os.path.join(source_dir, "logger.db"))
@@ -30,12 +32,16 @@ if fetch_cursor.fetchone()[0] is 0:
 
 import subprocess
 
-google_username = subprocess.check_output(["uci", "get", "badger.@badger[0].google_usr"]).strip()
-google_password = subprocess.check_output(["uci", "get", "badger.@badger[0].google_pwd"]).strip()
+google_client_email = subprocess.check_output(["uci", "get", "badger.@badger[0].google_client_email"]).strip()
+google_private_key = subprocess.check_output(["uci", "get", "badger.@badger[0].google_private_key"]).strip()
 google_spreadsheet_title = subprocess.check_output(["uci", "get", "badger.@badger[0].spreadsheet_title"]).strip()
 
+google_private_key = google_private_key.decode('unicode_escape')
+
+credentials = SignedJwtAssertionCredentials(google_client_email, google_private_key, scope)
+
 # Login with your Google account
-gc = gspread.login(google_username, google_password)
+gc = gspread.authorize(credentials)
 
 # Open a worksheet from spreadsheet with one shot
 wks = gc.open(google_spreadsheet_title).sheet1

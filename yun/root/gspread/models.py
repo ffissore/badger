@@ -16,6 +16,7 @@ from itertools import chain
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement
 
+from . import urlencode
 from .ns import _ns, _ns1, ATOM_NS, BATCH_NS, SPREADSHEET_NS
 from .urls import construct_url
 from .utils import finditem, numericise_all
@@ -53,9 +54,12 @@ class Spreadsheet(object):
 
     def __init__(self, client, feed_entry):
         self.client = client
-        id_parts = feed_entry.find(_ns('id')).text.split('/')
-        self.id = id_parts[-1]
         self._sheet_list = []
+        self._feed_entry = feed_entry
+
+    @property
+    def id(self):
+        return self._feed_entry.find(_ns('id')).text.split('/')[-1]
 
     def get_id_fields(self):
         return {'spreadsheet_id': self.id}
@@ -156,8 +160,12 @@ class Spreadsheet(object):
         """Shortcut property for getting the first worksheet."""
         return self.get_worksheet(0)
 
+    @property
+    def title(self):
+        return self._feed_entry.find(_ns('title')).text
 
 class Worksheet(object):
+
     """A class for worksheet object."""
 
     def __init__(self, spreadsheet, element):
@@ -166,8 +174,12 @@ class Worksheet(object):
         self._id = element.find(_ns('id')).text.split('/')[-1]
         self._title = element.find(_ns('title')).text
         self._element = element
-        self.version = self._get_link(
-            'edit', element).get('href').split('/')[-1]
+        try:
+            self.version = self._get_link(
+                'edit', element).get('href').split('/')[-1]
+        except:
+            # not relevant for read-only spreadsheets
+            self.version = None
 
     def __repr__(self):
         return '<%s %s id:%s>' % (self.__class__.__name__,
@@ -273,8 +285,8 @@ class Worksheet(object):
         while div:
             (div, mod) = divmod(div, 26)
             if mod == 0:
-                 mod = 26
-                 div -= 1
+                mod = 26
+                div -= 1
             column_label = chr(mod + self._MAGIC_NUMBER) + column_label
 
         label = '%s%s' % (column_label, row)
@@ -336,16 +348,16 @@ class Worksheet(object):
         # empties
         if not rows:
             return []
-            
+
         all_row_keys = chain.from_iterable(row.keys() for row in rows.values())
         rect_cols = range(1, max(all_row_keys) + 1)
         rect_rows = range(1, max(rows.keys()) + 1)
 
         return [[rows[i][j] for j in rect_cols] for i in rect_rows]
 
-    def get_all_records(self, empty2zero=False):
+    def get_all_records(self, empty2zero=False, head=1):
         """Returns a list of dictionaries, all of them having:
-            - the contents of the spreadsheet's first row of cells as keys,
+            - the contents of the spreadsheet's with the head row as keys,
             And each of these dictionaries holding
             - the contents of subsequent rows of cells as values.
 
@@ -353,11 +365,15 @@ class Worksheet(object):
         Cell values are numericised (strings that can be read as ints
         or floats are converted).
 
-        :param empty2zero: determines whether empty cells are converted to zeros."""
+        :param empty2zero: determines whether empty cells are converted to zeros.
+        :param head: determines wich row to use as keys, starting from 1
+            following the numeration of the spreadsheet."""
+
+        idx = head - 1
 
         data = self.get_all_values()
-        keys = data[0]
-        values = [numericise_all(row, empty2zero) for row in data[1:]]
+        keys = data[idx]
+        values = [numericise_all(row, empty2zero) for row in data[idx + 1:]]
 
         return [dict(zip(keys, row)) for row in values]
 
@@ -524,6 +540,30 @@ class Worksheet(object):
 
         self.update_cells(cell_list)
 
+    def insert_row(self, values, index=1):
+        """"Adds a row to the worksheet at the specified index and populates it with values.
+        Widens the worksheet if there are more values than columns.
+
+        :param values: List of values for the new row.
+        """
+        self.add_rows(1)
+        data_width = len(values)
+        if self.col_count < data_width:
+            self.resize(cols=data_width)
+
+        all_cells = self.get_all_values()
+        rows_after_insert = all_cells[index - 1:self.row_count]
+
+        rows_after_insert.insert(0, values)
+
+        updated_cell_list = []
+        for r, row in enumerate(rows_after_insert, start=1):
+            for c, cell in enumerate(row, start=1):
+                newcell = self.cell(r + (index - 1), c)
+                newcell.value = rows_after_insert[r - 1][c - 1]
+                updated_cell_list.append(newcell)
+        self.update_cells(updated_cell_list)
+
     def _finder(self, func, query):
         cells = self._fetch_cells()
 
@@ -551,18 +591,41 @@ class Worksheet(object):
         """
         return self._finder(filter, query)
 
+    def export(self, format='csv'):
+        """Export the worksheet in specified format.
+
+        :param format: A format of the output.
+        """
+        export_link = self._get_link(
+            'http://schemas.google.com/spreadsheets/2006#exportcsv',
+            self._element).get('href')
+
+        url, qs = export_link.split('?')
+        params = dict(param.split('=') for param in  qs.split('&'))
+
+        params['format'] = format
+
+        params = urlencode(params)
+        export_link = '%s?%s' % (url, params)
+
+        return self.client.session.get(export_link)
+
 
 class Cell(object):
+
     """An instance of this class represents a single cell
     in a :class:`worksheet <Worksheet>`.
 
     """
+
     def __init__(self, worksheet, element):
         self.element = element
         cell_elem = element.find(_ns1('cell'))
         self._row = int(cell_elem.get('row'))
         self._col = int(cell_elem.get('col'))
         self.input_value = cell_elem.get('inputValue')
+        numeric_value = cell_elem.get('numericValue')
+        self.numeric_value = float(numeric_value) if numeric_value else None
 
         #: Value of the cell.
         self.value = cell_elem.text or ''
